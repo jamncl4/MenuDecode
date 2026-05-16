@@ -172,8 +172,9 @@ export default function App() {
         result = await analyzePhoto(img.b64, img.mime);
 
       } else if (tab === "text" && text.trim()) {
-        setStage("Analyzing menu...");
-        result = await analyzeText(text);
+        setStage("Analyzing menu... (" + img.kb + "KB) — sending...");
+        if (img.kb > 4000) throw new Error("Image too large after compression (" + img.kb + "KB). Please take a closer photo of just the menu text.");
+        result = await analyzePhoto(img.b64, img.mime);
 
       } else {
         throw new Error("Please provide a restaurant name, image, or menu text.");

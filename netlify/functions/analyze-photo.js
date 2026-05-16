@@ -49,7 +49,7 @@ function parseMenu(str) {
 }
 
 // ── Raw API call helper ───────────────────────────────────────────────────────
-async function claudeCall(messages, system, maxTokens) {
+async function claudeCall(messages, system, maxTokens, model = "claude-sonnet-4-6") {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -58,7 +58,7 @@ async function claudeCall(messages, system, maxTokens) {
       "x-api-key": process.env.ANTHROPIC_API_KEY,
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model,
       max_tokens: maxTokens,
       system,
       messages
@@ -109,7 +109,8 @@ export const handler = async (event) => {
         ]
       }],
       "You are an expert at reading restaurant menus. Extract all visible text accurately.",
-      1024  // OCR only needs a small token budget
+      1024,    // OCR only needs a small token budget
+      "claude-haiku-4-5-20251001"  // Haiku is 3-4x faster for OCR — essential for staying within 30s limit
     );
 
     if (!menuText?.trim()) throw new Error("Could not read text from image. Try a clearer photo.");
@@ -121,7 +122,8 @@ export const handler = async (event) => {
     const analysisText = await claudeCall(
       [{ role: "user", content: "Analyze this menu:\n\n" + menuText }],
       SYSTEM_ANALYZE,
-      4096
+      4096,
+      "claude-haiku-4-5-20251001"  // Haiku for speed — keeps total under 30s limit
     );
 
     const result = parseMenu(analysisText);
@@ -135,4 +137,3 @@ export const handler = async (event) => {
     return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message || "Photo analysis failed" }) };
   }
 };
-

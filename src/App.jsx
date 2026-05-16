@@ -60,18 +60,21 @@ function compressImage(dataUrl) {
     const img = new Image();
     img.onerror = () => reject(new Error("Image failed to load"));
     img.onload  = () => {
-      const MAX = 1568; // Anthropic recommended max — backend can handle full size
+      const MAX = 1000; // 1000px balances readability vs payload size
       let w = img.width || 800, h = img.height || 600;
       if (w > MAX || h > MAX) { const r = Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
       const c = document.createElement("canvas");
       c.width=w; c.height=h;
       const ctx = c.getContext("2d");
       ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
-      const url = c.toDataURL("image/jpeg", 0.85);
+      const url = c.toDataURL("image/jpeg", 0.75);
       const b64 = (url.split(",")[1] || "").replace(/\s/g, "");
       if (!b64 || b64.length < 200) { reject(new Error("Canvas output empty — try a screenshot")); return; }
       if (!b64.startsWith("/9j/")) { reject(new Error("Canvas not a valid JPEG — try a screenshot")); return; }
-      resolve({ b64, mime: "image/jpeg", kb: Math.round(b64.length * 0.75 / 1024) });
+      const kb = Math.round(b64.length * 0.75 / 1024);
+      // Netlify function limit is 6MB — warn if compressed image is unexpectedly large
+      if (kb > 3000) { reject(new Error("Compressed image too large (" + kb + "KB). Please take a closer photo of just the menu.")); return; }
+      resolve({ b64, mime: "image/jpeg", kb });
     };
     img.src = dataUrl;
   });

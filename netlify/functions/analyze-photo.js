@@ -126,6 +126,7 @@ export const handler = async (event) => {
       "claude-haiku-4-5-20251001"  // Haiku for speed — keeps total under 30s limit
     );
 
+    console.log("analyze-photo: pass 2 raw (first 500):", analysisText ? analysisText.slice(0, 500) : "EMPTY");
     const result = parseMenu(analysisText);
     if (!result?.items?.length) throw new Error("No menu items found in the image");
 

@@ -1,11 +1,10 @@
 // netlify/functions/analyze-photo.js
+// Uses raw fetch instead of SDK — matches the exact format that worked in the artifact.
 // Input:  { image: "base64string", mimeType: "image/jpeg" }
 // Output: { restaurant: "Name", items: [...] }
 
-import Anthropic from "@anthropic-ai/sdk";
-
 const ITEM_SHAPE = '{"name":"...","category":"Appetizer|Entree|Salad|Soup|Side|Dessert|Drink","calories":450,"cal_lo":380,"cal_hi":520,"fat_g":18,"fat_lo":14,"fat_hi":22,"sodium_mg":820,"sod_lo":650,"sod_hi":990,"carbs_g":52,"carb_lo":44,"carb_hi":60,"protein_g":24,"pro_lo":20,"pro_hi":28,"price":"$12"}';
-const SCHEMA = '{"restaurant":"Name","items":[' + ITEM_SHAPE + ']}'
+const SCHEMA = '{"restaurant":"Name","items":[' + ITEM_SHAPE + ']}';
 const SYSTEM = [
   "You are a restaurant nutrition expert.",
   "Analyze the menu image and extract every food and drink item you can read.",
@@ -63,29 +62,51 @@ export const handler = async (event) => {
   if (!image) return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: "Missing image data" }) };
 
   const cleanImage = image.replace(/\s/g, "");
-  const validMime = ["image/jpeg","image/jpg","image/png","image/webp","image/gif"].includes(mimeType) ? mimeType : "image/jpeg";
+  const validMime = ["image/jpeg","image/jpg","image/png","image/webp"].includes(mimeType)
+    ? mimeType : "image/jpeg";
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const imageSizeKb = Math.round(cleanImage.length * 0.75 / 1024);
+  console.log("analyze-photo: image size", imageSizeKb, "KB, mime:", validMime);
 
   try {
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
-      system: SYSTEM,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: validMime, data: cleanImage } },
-          { type: "text", text: "Analyze every item on this menu and return the JSON." }
-        ]
-      }]
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 4096,
+        system: SYSTEM,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: validMime, data: cleanImage } },
+            { type: "text", text: "Analyze every item on this menu and return the JSON." }
+          ]
+        }]
+      })
     });
-    const text = (response.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+
+    const data = await response.json();
+    console.log("analyze-photo: API status", response.status);
+
+    if (!response.ok || data.type === "error") {
+      const msg = data?.error?.message || JSON.stringify(data).slice(0, 200);
+      console.error("analyze-photo: API error", response.status, msg);
+      return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: "Claude API error: " + msg }) };
+    }
+
+    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
     const result = parseMenu(text);
     if (!result?.items?.length) throw new Error("No menu items found in the image");
+
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify(result) };
+
   } catch (e) {
-    console.error("analyze-photo error:", e);
+    console.error("analyze-photo error:", e.message);
     return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message || "Photo analysis failed" }) };
   }
 };

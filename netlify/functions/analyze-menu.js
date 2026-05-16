@@ -88,6 +88,7 @@ export const handler = async (event) => {
     if (type === "restaurant" && text.trim() === "UNKNOWN") {
       return { statusCode: 404, headers: HEADERS, body: JSON.stringify({ error: "Restaurant not found. Try pasting the menu in the Text tab." }) };
     }
+    console.log("analyze-menu: raw (first 500):", text ? text.slice(0, 500) : "EMPTY");
     const result = parseMenu(text);
     if (!result?.items?.length) throw new Error("No menu items found");
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify(result) };

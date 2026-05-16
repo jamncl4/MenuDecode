@@ -31,7 +31,10 @@ async function callFunction(endpoint, body) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
+  // Wrap res.json() — Safari throws "string did not match" on non-JSON timeout responses
+  let data;
+  try { data = await res.json(); }
+  catch { throw new Error("Request timed out or server unavailable (HTTP " + res.status + ") — please try again"); }
   if (!res.ok) throw new Error(data.error || "Server error " + res.status);
   return data;
 }
@@ -168,13 +171,13 @@ export default function App() {
       } else if (tab === "image" && imgB64) {
         setStage("Compressing image...");
         const img = await compressImage(imgB64);
-        setStage("Analyzing menu... (" + img.kb + "KB)");
+        if (img.kb > 4000) throw new Error("Image too large (" + img.kb + "KB). Please take a closer photo of just the menu text.");
+        setStage("Reading menu image... (" + img.kb + "KB)");
         result = await analyzePhoto(img.b64, img.mime);
 
       } else if (tab === "text" && text.trim()) {
-        setStage("Analyzing menu... (" + img.kb + "KB) — sending...");
-        if (img.kb > 4000) throw new Error("Image too large after compression (" + img.kb + "KB). Please take a closer photo of just the menu text.");
-        result = await analyzePhoto(img.b64, img.mime);
+        setStage("Analyzing menu...");
+        result = await analyzeText(text);
 
       } else {
         throw new Error("Please provide a restaurant name, image, or menu text.");

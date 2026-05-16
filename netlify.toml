@@ -7,10 +7,10 @@
   node_bundler = "esbuild"
 
 [functions."analyze-menu"]
-  timeout = 30
+  timeout = 60
 
 [functions."analyze-photo"]
-  timeout = 30
+  timeout = 60
 
 [functions."scrape-menu"]
   timeout = 60

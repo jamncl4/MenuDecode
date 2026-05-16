@@ -75,8 +75,11 @@ export const handler = async (event) => {
   }
 
   try {
+    // Restaurant queries generate large menus from training knowledge — use Haiku for speed
+    // Text queries are usually shorter — keep Sonnet for better nutrition accuracy
+    const model = type === "restaurant" ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
     const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model,
       max_tokens: 4096,
       system: SYSTEM,
       messages: [{ role: "user", content: userMessage }]

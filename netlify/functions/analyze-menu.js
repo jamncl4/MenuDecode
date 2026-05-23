@@ -83,7 +83,7 @@ export const handler = async (event) => {
     const model = "claude-haiku-4-5-20251001";
     const response = await client.messages.create({
       model,
-      max_tokens: 4096,
+      max_tokens: 6144,
       system: SYSTEM,
       messages: [{ role: "user", content: userMessage }]
     });

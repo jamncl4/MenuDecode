@@ -15,6 +15,10 @@ const SYSTEM_ANALYZE = [
   "Restaurant sodium is typically 2-4x what home cooking would use. Sauces, glazes and dressings add significant hidden calories, fat and sodium.",
   "Do NOT underestimate. Err on the side of higher calories, sodium and carbs to reflect real restaurant portions.",
   "For complete dinner plates and entrees that include sides, calculate the FULL PLATE — every listed accompaniment (stuffing, potatoes, vegetables, sauces, gravy) must be included in the calorie and nutrition totals.",
+  "Use these calorie anchors for accuracy — PROTEINS per ounce: fatty beef cuts (prime rib, ribeye, brisket) 70-80 cal/oz; lean beef (sirloin, filet) 55-65 cal/oz; grilled chicken breast 45-55 cal/oz; fried or breaded chicken 65-75 cal/oz; pork chops or tenderloin 55-65 cal/oz; grilled fish 35-45 cal/oz; fried fish 55-65 cal/oz; shrimp 30-40 cal/oz.",
+  "STARCH anchors: twice baked potato 400-500 cal; restaurant mashed potatoes 250-350 cal; restaurant french fries 400-500 cal; pasta dishes 800-1200 cal; rice one cup 200-250 cal; stuffing three-quarter cup 180-220 cal.",
+  "RICH ADDITION anchors: cream or butter sauces per ounce 50-80 cal; cheese toppings 100-150 cal; gravy quarter cup 60-80 cal; aioli or mayo-based sauces 80-100 cal per tablespoon.",
+  "FULL PLATE minimums: steakhouse entree with sides rarely under 1200 cal; pasta entree rarely under 900 cal; fried seafood plate rarely under 800 cal; burger with fries rarely under 900 cal.",
   "Also estimate low/high bounds for natural portion variation.",
   "Output ONLY a compact minified JSON object on a single line — no code fences, no markdown, no spaces, no indentation, no explanation — just raw JSON:",
   SCHEMA
@@ -110,7 +114,7 @@ export const handler = async (event) => {
         role: "user",
         content: [
           { type: "image", source: { type: "base64", media_type: validMime, data: cleanImage } },
-          { type: "text", text: "Extract all the text you can read from this menu image. Include every item name, description, and price. Return only the raw text exactly as it appears — no formatting, no commentary." }
+          { type: "text", text: "Extract text from this menu image. Only include text you can read clearly and confidently. If any text is blurry, partially visible, or unclear, skip it entirely — do not guess, infer, or fill in items. Return only the raw text you can clearly read, exactly as it appears — no formatting, no commentary." }
         ]
       }],
       "You are an expert at reading restaurant menus. Extract all visible text accurately.",

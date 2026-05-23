@@ -126,7 +126,7 @@ export const handler = async (event) => {
     const analysisText = await claudeCall(
       [{ role: "user", content: "Analyze this menu:\n\n" + menuText }],
       SYSTEM_ANALYZE,
-      4096,
+      4800,
       "claude-haiku-4-5-20251001"  // Haiku for speed — keeps total under 30s limit
     );
 

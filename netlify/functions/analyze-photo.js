@@ -14,6 +14,7 @@ const SYSTEM_ANALYZE = [
   "IMPORTANT: Assume full restaurant-style preparation — generous butter, oil, sauces, and seasoning as actually served.",
   "Restaurant sodium is typically 2-4x what home cooking would use. Sauces, glazes and dressings add significant hidden calories, fat and sodium.",
   "Do NOT underestimate. Err on the side of higher calories, sodium and carbs to reflect real restaurant portions.",
+  "For complete dinner plates and entrees that include sides, calculate the FULL PLATE — every listed accompaniment (stuffing, potatoes, vegetables, sauces, gravy) must be included in the calorie and nutrition totals.",
   "Also estimate low/high bounds for natural portion variation.",
   "Output ONLY a compact minified JSON object on a single line — no code fences, no markdown, no spaces, no indentation, no explanation — just raw JSON:",
   SCHEMA

@@ -20,7 +20,6 @@ const SYSTEM = [
   "RICH ADDITION anchors: cream or butter sauces per ounce 50-80 cal; cheese toppings 100-150 cal; gravy quarter cup 60-80 cal; aioli or mayo-based sauces 80-100 cal per tablespoon.",
   "FULL PLATE minimums: steakhouse entree with sides rarely under 1200 cal; pasta entree rarely under 900 cal; fried seafood plate rarely under 800 cal; burger with fries rarely under 900 cal.",
   "Seafood scampi or butter sauce pasta dishes: base pasta with butter or scampi sauce 800-1000 cal without bread; add 200-250 cal if garlic bread is included making total 1000-1250 cal; add another 150-200 cal per protein addition (shrimp, scallops, chicken). Bull-Run-style scampi WITH garlic bread and broccolini: 1200-1500 cal total.",
-  "Chicken pot pie with sides (mashed potato, squash): 1100-1400 cal — the pastry crust adds 300-400 cal and restaurant mashed potato side adds another 300-400 cal beyond the filling.",
   "Also estimate low/high bounds for natural portion variation.",
   "Output ONLY a compact minified JSON object on a single line — no code fences, no markdown, no spaces, no indentation, no explanation — just raw JSON:",
   SCHEMA

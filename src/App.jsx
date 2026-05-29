@@ -47,8 +47,13 @@ async function analyzeRestaurant(name) {
   return callFunction(FN_MENU, { type: "restaurant", name });
 }
 
-async function analyzePhoto(image, mimeType) {
-  return callFunction(FN_PHOTO, { image, mimeType });
+async function analyzePhoto(image, mimeType, onStage) {
+  // Pass 1: OCR — extract text from image
+  const ocrResult = await callFunction(FN_PHOTO, { image, mimeType });
+  if (!ocrResult.text?.trim()) throw new Error("Could not read text from image. Try a clearer photo or use the Text tab.");
+  onStage("Analyzing nutrition...");
+  // Pass 2: Nutrition analysis — same path as text tab
+  return callFunction(FN_MENU, { type: "text", content: ocrResult.text });
 }
 
 async function analyzeUrl(url) {
@@ -63,14 +68,14 @@ function compressImage(dataUrl) {
     const img = new Image();
     img.onerror = () => reject(new Error("Image failed to load"));
     img.onload  = () => {
-      const MAX = 1000; // 1000px balances readability vs payload size
+      const MAX = 1200; // 1200px — safe for OCR-only pass with independent 30s window
       let w = img.width || 800, h = img.height || 600;
       if (w > MAX || h > MAX) { const r = Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
       const c = document.createElement("canvas");
       c.width=w; c.height=h;
       const ctx = c.getContext("2d");
       ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
-      const url = c.toDataURL("image/jpeg", 0.75);
+      const url = c.toDataURL("image/jpeg", 0.80);
       const b64 = (url.split(",")[1] || "").replace(/\s/g, "");
       if (!b64 || b64.length < 200) { reject(new Error("Canvas output empty — try a screenshot")); return; }
       if (!b64.startsWith("/9j/")) { reject(new Error("Canvas not a valid JPEG — try a screenshot")); return; }
@@ -171,9 +176,9 @@ export default function App() {
       } else if (tab === "image" && imgB64) {
         setStage("Compressing image...");
         const img = await compressImage(imgB64);
-        if (img.kb > 4000) throw new Error("Image too large (" + img.kb + "KB). Please take a closer photo of just the menu text.");
+        if (img.kb > 5000) throw new Error("Image too large (" + img.kb + "KB). Please take a closer photo of just the menu text.");
         setStage("Reading menu image... (" + img.kb + "KB)");
-        result = await analyzePhoto(img.b64, img.mime);
+        result = await analyzePhoto(img.b64, img.mime, setStage);
 
       } else if (tab === "text" && text.trim()) {
         setStage("Analyzing menu...");

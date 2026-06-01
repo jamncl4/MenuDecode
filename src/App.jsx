@@ -115,6 +115,8 @@ export default function App() {
   const [elapsed,setElapsed] = useState(0);
   const [err,    setErr   ] = useState(null);
   const [drag,   setDrag  ] = useState(false);
+  const [partial,  setPartial ] = useState(false);
+  const [resultTab,setResultTab] = useState(null);
   const [visNutrients, setVisNutrients] = useState(() => new Set(NUTRIENTS.map(n => n.key)));
   const fileRef    = useRef();
   const galleryRef = useRef();
@@ -123,6 +125,7 @@ export default function App() {
   const clearAll = () => {
     setUrl(""); setImgPrev(null); setImgB64(null); setImgMime(null);
     setText(""); setItems([]); setResto(""); setSel(new Set()); setErr(null);
+    setPartial(false); setResultTab(null);
     setVisNutrients(new Set(NUTRIENTS.map(n => n.key)));
   };
 
@@ -191,6 +194,8 @@ export default function App() {
       if (!result?.items?.length) throw new Error("No menu items found.");
       setResto(result.restaurant || "Menu");
       setItems(result.items);
+      setPartial(result.partial === true);
+      setResultTab(tab);
 
     } catch(e) {
       setErr(e.message);
@@ -321,6 +326,8 @@ export default function App() {
       .tv{font-family:'DM Mono',monospace;font-size:15px;font-weight:500} .tu{font-size:9px;color:#4A4842;margin-left:1px}
       .tr{font-family:'DM Mono',monospace;font-size:9px;color:#5A5248;margin-top:2px}
       .disc{margin-top:12px;font-family:'DM Mono',monospace;font-size:9px;color:#252525;text-align:center;line-height:1.6}
+      .warn{background:rgba(232,168,56,.07);border:1px solid rgba(232,168,56,.2);border-radius:8px;padding:10px 14px;color:#E8A838;font-size:11px;margin-bottom:14px;font-family:'DM Mono',monospace;line-height:1.6}
+      .note{background:rgba(255,255,255,.03);border:1px solid #242424;border-radius:8px;padding:10px 14px;color:#5A5248;font-size:11px;margin-bottom:14px;font-family:'DM Mono',monospace;line-height:1.6}
     `}</style>
 
     <div className="app">
@@ -400,8 +407,14 @@ export default function App() {
       {items.length > 0 && <>
         <div className="rh">
           <div className="rn">{resto}</div>
-          <div className="rc">{items.length} items</div>
+          <div className="rc">{items.length} items{partial && " · Partial"}</div>
         </div>
+        {partial && (
+          <div className="warn">⚠ Large menu — showing {items.length} items. For complete results use the Text tab.</div>
+        )}
+        {!partial && resultTab === "image" && (
+          <div className="note">📷 Photo results depend on image quality. Use Text tab for complex dishes with many sides.</div>
+        )}
 
         <div className="sort-sec">
           <div className="nut-row">

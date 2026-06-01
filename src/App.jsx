@@ -35,7 +35,12 @@ async function callFunction(endpoint, body) {
   let data;
   try { data = await res.json(); }
   catch { throw new Error("Request timed out or server unavailable (HTTP " + res.status + ") — please try again"); }
-  if (!res.ok) throw new Error(data.error || "Server error " + res.status);
+  if (!res.ok) {
+    if (res.status === 502 || res.status === 504) {
+      throw new Error("Analysis timed out — please try again. If it keeps failing, photograph a smaller section (e.g. Entrees only) or use the Text tab.");
+    }
+    throw new Error(data.error || "Server error " + res.status);
+  }
   return data;
 }
 

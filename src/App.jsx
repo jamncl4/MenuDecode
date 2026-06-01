@@ -410,7 +410,7 @@ export default function App() {
           <div className="rc">{items.length} items{partial && " · Partial"}</div>
         </div>
         {partial && (
-          <div className="warn">⚠ Large menu — showing {items.length} items. For complete results use the Text tab.</div>
+          <div className="warn">⚠ Large menu — showing {items.length} items. For complete results use the Text tab, or photograph individual sections (e.g. Entrees only).</div>
         )}
         {!partial && resultTab === "image" && (
           <div className="note">📷 Photo results depend on image quality. Use Text tab for complex dishes with many sides.</div>

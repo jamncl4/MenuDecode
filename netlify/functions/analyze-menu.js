@@ -23,6 +23,10 @@ const SYSTEM = [
   "RICH ADDITION anchors: cream or butter sauces per ounce 50-80 cal; cheese toppings 100-150 cal; gravy quarter cup 60-80 cal; aioli or mayo-based sauces 80-100 cal per tablespoon.",
   "FULL PLATE minimums: steakhouse entree with sides rarely under 1200 cal; pasta entree rarely under 900 cal; fried seafood plate rarely under 800 cal; burger with fries rarely under 900 cal.",
   "Seafood scampi or butter sauce pasta dishes: base pasta with butter or scampi sauce 800-1000 cal without bread; add 200-250 cal if garlic bread is included making total 1000-1250 cal; add another 150-200 cal per protein addition (shrimp, scallops, chicken). Bull-Run-style scampi WITH garlic bread and broccolini: 1200-1500 cal total.",
+  "SANDWICH BREAD calories by type: panini or ciabatta pressed with oil 280-380 cal; hoagie or sub roll 260-340 cal; croissant 280-340 cal; brioche bun 250-300 cal; sourdough or artisan 2 slices 200-280 cal; whole wheat wrap 180-220 cal; pita 150-180 cal; standard sandwich bread 2 slices 150-200 cal. Always include bread calories in sandwich totals.",
+  "SANDWICH PROTEIN calories: Italian deli meats (salami, capicola, mortadella, prosciutto) are very high fat at 120-150 cal/oz — a typical Italian combo sandwich has 3-4oz of meat totaling 360-600 cal before bread; roast beef 60-70 cal/oz; turkey breast 35-45 cal/oz; fried chicken cutlet or fingers 350-500 cal; tuna salad or chicken salad mayo-based 300-450 cal; meatloaf 250-350 cal per serving.",
+  "SANDWICH ADDITIONS often underestimated: aioli, pesto mayo, or flavored mayo 100-150 cal per tablespoon; avocado 80-100 cal; bacon 2 strips 90-120 cal; melted cheese 100-150 cal per serving.",
+  "SANDWICH minimums: simple turkey or veggie wrap 450-600 cal; standard deli sandwich 550-750 cal; panini with meat and cheese rarely under 750 cal; fried chicken sandwich 800-1100 cal; Italian combo with multiple meats 800-1100 cal; Reuben with thousand island dressing 850-1100 cal; club sandwich triple decker 800-1100 cal.",
   "Also estimate low/high bounds for natural portion variation.",
   "Output ONLY a compact minified JSON object on a single line — no code fences, no markdown, no spaces, no indentation, no explanation — just raw JSON:",
   SCHEMA
@@ -48,14 +52,22 @@ function parseMenu(str) {
   for (let i = 0; i < clean.length; i++) {
     if (clean[i] === "{") { if (start === -1) start = i; depth++; }
     else if (clean[i] === "}" && depth > 0 && --depth === 0) {
-      try { return JSON.parse(clean.slice(start, i + 1)); }
-      catch { try { return JSON.parse(clean.slice(start, i + 1).replace(/[\x00-\x1F\x7F]/g, ' ')); } catch {} }
+      try {
+        const result = JSON.parse(clean.slice(start, i + 1));
+        return { ...result, partial: false };
+      } catch {
+        try {
+          const result = JSON.parse(clean.slice(start, i + 1).replace(/[\x00-\x1F\x7F]/g, ' '));
+          return { ...result, partial: false };
+        } catch {}
+      }
     }
   }
+  // Truncated response — salvage complete items
   const hits = [...clean.matchAll(/\{"name":"[^"]+","category":"[^"]+",[^{}]+\}/g)];
   if (hits.length) {
     const resto = (clean.match(/"restaurant"\s*:\s*"([^"]+)"/) || [])[1] || "Menu (partial)";
-    return { restaurant: resto, items: hits.map(h => { try { return JSON.parse(h[0]); } catch { return null; } }).filter(Boolean) };
+    return { restaurant: resto, partial: true, items: hits.map(h => { try { return JSON.parse(h[0]); } catch { return null; } }).filter(Boolean) };
   }
   throw new Error("No menu data found in response");
 }

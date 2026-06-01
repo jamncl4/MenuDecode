@@ -413,7 +413,7 @@ export default function App() {
           <div className="warn">⚠ Large menu — showing {items.length} items. For complete results use the Text tab, or photograph individual sections (e.g. Entrees only).</div>
         )}
         {!partial && resultTab === "image" && (
-          <div className="note">📷 Photo results depend on image quality. Use Text tab for complex dishes with many sides.</div>
+          <div className="note">📷 Photo results depend on image quality — showing {items.length} items. For best results photograph individual sections (e.g. Entrees only). Use Text tab for complex dishes with many sides.</div>
         )}
 
         <div className="sort-sec">
